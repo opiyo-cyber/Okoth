@@ -96,6 +96,7 @@ This document explains the design choices and implementation details for contain
 ## Screenshot of DockerHub Deployed Image
 
 Backend image screenshot https://hub.docker.com/repository/docker/opiyocrosh/backend/tags/v1.0/sha256:c68fb51cf199402518354f8ae3398433b92f613ec1a50d5047b28b2826071fce
+
 Frontend image https://hub.docker.com/repository/docker/opiyocrosh/client/tags/v1.0/sha256-9d69fb90472be43a1aa2abd009495eb928b1d356732bfca6a2f06776b71d1ba9
 
 
