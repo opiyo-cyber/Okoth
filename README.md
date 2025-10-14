@@ -13,3 +13,5 @@ Install the docker engine here:
 
 ## How to run the app
 Use vagrant up --provison command
+frontend http://localhost:3002/
+backend  http://localhost:5001/ 
