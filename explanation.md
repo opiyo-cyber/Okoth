@@ -7,14 +7,13 @@ This document explains the design choices and implementation details for contain
 ## 1. Choice of the Base Image on Which to Build Each Container
 
 - **Frontend (`brian-yolo-client`)**  
-  Used a multi-stage build:
-  - **Build Stage:** `node:14-slim` — provides a full Node.js environment with necessary build tools while keeping image size reasonable.  
-  - **Production Stage:** `alpine:3.16.7` — minimal Linux base to drastically reduce the final image size and surface area for vulnerabilities.
+  Multi-stage build using `node:14-alpine` for both stages to ensure ABI compatibility and smaller images.
 
 - **Backend (`brian-yolo-backend`)**  
-  Also a multi-stage build:
-  - **Build Stage:** `node:14` — full Node.js for installing dependencies and building the app.  
-  - **Production Stage:** `alpine:3.16.7` — minimal runtime environment for running the backend server efficiently.
+  Multi-stage build using `node:14-alpine` for both stages for consistency and reduced surface area.
+
+- **Database (`app-ip-mongo`)**  
+  Official `mongo:latest` image for a maintained, production-ready MongoDB instance.
 
 - **Database (`app-ip-mongo`)**  
   Used the official `mongo:latest` image to leverage a well-maintained, production-ready MongoDB instance.
