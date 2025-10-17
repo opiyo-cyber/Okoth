@@ -92,12 +92,17 @@ This document explains the design choices and implementation details for contain
 
 ---
 
-## Screenshot of DockerHub Deployed Image
+## Docker Hub Images and Tags
 
-Backend image screenshot https://hub.docker.com/repository/docker/opiyocrosh/backend/tags/v1.0/sha256:c68fb51cf199402518354f8ae3398433b92f613ec1a50d5047b28b2826071fce
+- Backend image: opiyocrosh/yolo-backend:1.0.0
+  - Tags page: https://hub.docker.com/r/opiyocrosh/yolo-backend/tags
+  - Latest push digest: sha256:317116b37880a58c0f92637dcfd4f03a4bc7b1e3499b012fcf195afb0df958e5
+- Frontend image: opiyocrosh/yolo-client:1.0.0
+  - Tags page: https://hub.docker.com/r/opiyocrosh/yolo-client/tags
+  - Latest push digest: sha256:6b87c320acfe07a32b0f88ca045f0645d993a28b67eab72a7bd4c90966dbc640
 
-Frontend image https://hub.docker.com/repository/docker/opiyocrosh/client/tags/v1.0/sha256-9d69fb90472be43a1aa2abd009495eb928b1d356732bfca6a2f06776b71d1ba9
-
+Screenshots
+- Please include screenshots from your Docker Hub repositories showing the 1.0.0 tags (backend and frontend).
 
 ---
 
