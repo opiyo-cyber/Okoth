@@ -1,34 +1,53 @@
 # 🐳 YOLO E-Commerce App – Dockerized Full-Stack Application
 
-This project is a fully Dockerized full-stack **YOLO-based e-commerce web application**, built and deployed using **Docker** and **Docker Compose**. It features a **React frontend**, an **Express backend**, and a **MongoDB database**, all running in isolated containers.
+This is a fully containerized full-stack e-commerce web application built using **React (frontend)**, **Node.js + Express (backend)**, and **MongoDB (database)**. The entire stack is managed using **Docker** and **Docker Compose** for seamless deployment and scalability.
 
-Users can view and add products to the system via a responsive interface. Product data is persisted in a MongoDB container volume.
-
----
-
-## ✅ Project Status: Completed
-
-The project has been:
-- Containerized using Docker and Docker Compose.
-- Successfully tested for product addition and data persistence.
-- Pushed to GitHub with DockerHub image tagging.
-- Fully documented for setup, build, and deployment.
+The application allows users to add and view retail products. All product data is stored in MongoDB, with persistence managed via Docker volumes.
 
 ---
 
-## 📌 Table of Contents
+## 📦 Project Overview
 
-- [Project Structure](#file_folder-project-structure)
-- [How to Run the App](#rocket-how-to-run-the-app)
-- [Application URLs](#globe_with_meridians-application-urls)
-- [Tech Stack](#hammer_and_wrench-tech-stack)
-- [Features](#sparkles-features)
-- [Screenshots](#camera-screenshots)
-- [DockerHub Image](#whale-dockerhub-image)
-- [Developer Notes](#memo-developer-notes)
-- [License](#page_facing_up-license)
+This project demonstrates:
+
+- Full-stack application containerization using Docker.
+- Service orchestration using Docker Compose.
+- MongoDB data persistence through Docker volumes.
+- A modular architecture with separate containers for the frontend, backend, and database.
 
 ---
 
-## 📁 Project Structure
+## 🛠 Tech Stack
 
+- **Frontend:** React
+- **Backend:** Node.js, Express
+- **Database:** MongoDB
+- **Containerization:** Docker & Docker Compose
+- **Virtualization (optional):** Vagrant
+
+---
+
+Application Access
+Component	URL
+Frontend	http://localhost:3002
+
+Backend	http://localhost:5001
+
+Database	Internal (MongoDB container)
+Docker Compose Overview
+
+docker-compose.yml includes:
+
+frontend: React app running on port 3002.
+
+backend: Express API server running on port 5001.
+
+mongo: MongoDB service with a named volume for data persistence.
+Screenshots
+<img width="1800" height="1035" alt="image" src="https://github.com/user-attachments/assets/f0aa5de1-3cbf-4071-b945-d3ec3ecb7c38" />
+Author
+
+Your Name
+GitHub: opiyo-cyber
+
+DockerHub: https://hub.docker.com/repositories/opiyocrosh
