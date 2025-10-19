@@ -45,9 +45,9 @@ backend: Express API server running on port 5001.
 mongo: MongoDB service with a named volume for data persistence.
 Screenshots
 <img width="1800" height="1035" alt="image" src="https://github.com/user-attachments/assets/f0aa5de1-3cbf-4071-b945-d3ec3ecb7c38" />
+
 Author
 
-Your Name
 GitHub: opiyo-cyber
 
 DockerHub: https://hub.docker.com/repositories/opiyocrosh
