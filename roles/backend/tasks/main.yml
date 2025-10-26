@@ -15,7 +15,7 @@
         restart_policy: always
         env: "{{ backend_env }}"
         ports:
-          - "{{ backend_port }}:{{ backend_port }}"
+          - "{{ backend_port_host }}:{{ backend_port_container }}"
         networks:
           - name: "{{ docker_network_name }}"
   tags: ["backend"]

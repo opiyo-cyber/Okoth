@@ -15,7 +15,7 @@
         restart_policy: always
         env: "{{ frontend_env }}"
         ports:
-          - "{{ frontend_port }}:{{ frontend_port }}"
+          - "{{ frontend_port_host }}:{{ frontend_port_container }}"
         networks:
           - name: "{{ docker_network_name }}"
   tags: ["frontend"]

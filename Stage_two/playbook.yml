@@ -6,7 +6,7 @@
   vars:
     terraform_project_path: "{{ playbook_dir }}/terraform"
     vm_ip: "192.168.56.10"
-    frontend_port: 3000
+    frontend_port: 3002
     app_url: "http://{{ vm_ip }}:{{ frontend_port }}"
   tasks:
     - name: Ensure community.general collection is installed (for terraform module)

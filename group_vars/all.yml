@@ -32,7 +32,9 @@ backend_build_context: "{{ app_base_dir }}/backend"
 backend_dockerfile: "Dockerfile"
 backend_image_name: "okoth-backend:latest"
 backend_container_name: "brian-yolo-backend"
-backend_port: 5000
+# Container listens on 5000; expose as 5001 on the VM
+backend_port_container: 5000
+backend_port_host: 5001
 
 # Dynamically compute backend env based on database engine
 postgres_backend_env:
@@ -54,10 +56,12 @@ frontend_build_context: "{{ app_base_dir }}/client"
 frontend_dockerfile: "Dockerfile"
 frontend_image_name: "okoth-frontend:latest"
 frontend_container_name: "brian-yolo-client"
-frontend_port: 3000
+# Container listens on 3000; expose as 3002 on the VM
+frontend_port_container: 3000
+frontend_port_host: 3002
 
 # Frontend env defaults for API base URL
 frontend_env:
-  API_URL: "http://{{ host_ip }}:{{ backend_port }}"
-  REACT_APP_API_URL: "http://{{ host_ip }}:{{ backend_port }}"
-  VITE_API_URL: "http://{{ host_ip }}:{{ backend_port }}"
+  API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
+  REACT_APP_API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
+  VITE_API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"

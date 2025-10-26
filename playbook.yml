@@ -34,7 +34,7 @@
     - name: Wait for backend port
       ansible.builtin.wait_for:
         host: 127.0.0.1
-        port: "{{ backend_port }}"
+        port: "{{ backend_port_host }}"
         delay: 2
         timeout: 180
       tags: ["verify"]
@@ -42,14 +42,14 @@
     - name: Wait for frontend port
       ansible.builtin.wait_for:
         host: 127.0.0.1
-        port: "{{ frontend_port }}"
+        port: "{{ frontend_port_host }}"
         delay: 2
         timeout: 180
       tags: ["verify"]
 
     - name: Check backend HTTP response
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ backend_port }}"
+        url: "http://127.0.0.1:{{ backend_port_host }}"
         return_content: false
         status_code: [200, 301, 302, 404]
       register: backend_health
@@ -59,7 +59,7 @@
 
     - name: Check frontend HTTP response
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ frontend_port }}"
+        url: "http://127.0.0.1:{{ frontend_port_host }}"
         return_content: false
         status_code: [200, 301, 302]
       register: frontend_health
