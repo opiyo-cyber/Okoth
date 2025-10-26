@@ -61,7 +61,9 @@ Alternative (Docker Compose on host):
 Author
 
 opiyo-cyber
+
 email: opiyo20302030@gmail.com
+
 GitHub Profile: https://github.com/opiyo-cyber
 
 See `explanation.md` for detailed reasoning and module choices.
