@@ -25,8 +25,8 @@ Edit `group_vars/all.yml`:
 1) From this folder, run:
    - `vagrant up`
 2) On success, open the app:
-   - Frontend: `http://192.168.56.10:3002/`
-   - Backend (if directly browsable): `http://192.168.56.10:5001/`
+   - Frontend: `http://localhost:3002/
+   - Backend (if directly browsable): `http://localhost:5001/
 
 Alternative (Docker Compose on host):
 - `docker compose up -d --build` (or `docker-compose ...`)
@@ -37,7 +37,7 @@ Alternative (Docker Compose on host):
 1) `cd Stage_two`
 2) `ansible-playbook playbook.yml`
    - Applies Terraform, which invokes `vagrant up --provision`
-   - Waits for the frontend and prints URL
+   - Waits for the frontend and prints the URL
 
 ## Persistence
 - Postgres: named volume `okoth-postgres-data`
@@ -45,28 +45,23 @@ Alternative (Docker Compose on host):
 - Data survives container restarts; removing the volume clears data
 
 ### Validate persistence (Mongo default)
-1) Open the app at `http://192.168.56.10:3002/`
+1) Open the app at `http://localhost:3002`
 2) Add a product via the UI form
 3) Restart backend container inside VM: `docker restart brian-yolo-backend`
 4) Refresh products; the added product should still be present (persisted in `okoth-mongo-data`)
 
 ## Useful Tags
 - Run specific parts: `vagrant provision --provision-with ansible_local -- --tags "db,backend"`
-- Within VM (if running ansible locally): `ansible-playbook playbook.yml --tags backend`
+- Within VM (if running Ansible locally): `ansible-playbook playbook.yml --tags backend`
 
 ## Git & Terraform State
 - After running Stage 2, commit `Stage_two/terraform/terraform.tfstate` (contains no credentials in this setup)
 - Ensure `Stage_two/terraform/terraform.tfstate.backup` and `.terraform/` remain ignored (see `.gitignore`)
 
-## Push to GitHub
-- Initialize and push:
-  ```bash
-  git init
-  git add .
-  git commit -m "Okoth: Stage 1 & Stage 2 provisioning"
-  git branch -M main
-  git remote add origin <your_repo_url>
-  git push -u origin main
-  ```
+Author
+
+opiyo-cyber
+email: opiyo20302030@gmail.com
+GitHub Profile: https://github.com/opiyo-cyber
 
 See `explanation.md` for detailed reasoning and module choices.
