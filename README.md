@@ -25,8 +25,8 @@ Edit `group_vars/all.yml`:
 1) From this folder, run:
    - `vagrant up`
 2) On success, open the app:
-   - Frontend: `http://192.168.56.10:3000/`
-   - Backend (if directly browsable): `http://192.168.56.10:5000/`
+   - Frontend: `http://192.168.56.10:3002/`
+   - Backend (if directly browsable): `http://192.168.56.10:5001/`
 
 ## Stage 2 (Ansible orchestrating Terraform)
 1) `cd Stage_two`
@@ -40,7 +40,7 @@ Edit `group_vars/all.yml`:
 - Data survives container restarts; removing the volume clears data
 
 ### Validate persistence (Mongo default)
-1) Open the app at `http://192.168.56.10:3000/`
+1) Open the app at `http://192.168.56.10:3002/`
 2) Add a product via the UI form
 3) Restart backend container inside VM: `docker restart brian-yolo-backend`
 4) Refresh products; the added product should still be present (persisted in `okoth-mongo-data`)
