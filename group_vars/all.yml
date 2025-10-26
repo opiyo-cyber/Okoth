@@ -49,7 +49,8 @@ mongo_backend_env:
   MONGO_URL: "mongodb://app-ip-mongo:27017/{{ mongo_database }}"
   MONGODB_URI: "mongodb://app-ip-mongo:27017/{{ mongo_database }}"
 
-backend_env: "{{ postgres_backend_env if db_engine == 'postgres' else mongo_backend_env }}"
+# Ensure backend binds to all interfaces and expected port
+backend_env: "{{ (postgres_backend_env if db_engine == 'postgres' else mongo_backend_env) | combine({'PORT': '5000'}) }}"
 
 # Frontend service variables
 frontend_build_context: "{{ app_base_dir }}/client"
@@ -62,6 +63,9 @@ frontend_port_host: 3002
 
 # Frontend env defaults for API base URL
 frontend_env:
+  HOST: "0.0.0.0"
+  PORT: "3000"
   API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
   REACT_APP_API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
   VITE_API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
+  CHOKIDAR_USEPOLLING: "true"
