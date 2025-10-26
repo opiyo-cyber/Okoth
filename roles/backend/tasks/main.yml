@@ -1,0 +1,21 @@
+---
+- block:
+    - name: Build backend Docker image
+      community.docker.docker_image:
+        build:
+          path: "{{ backend_build_context }}"
+          dockerfile: "{{ backend_dockerfile }}"
+        name: "{{ backend_image_name }}"
+      when: app_repo_url != "REPLACE_WITH_YOUR_REPO_URL"
+
+    - name: Run backend container
+      community.docker.docker_container:
+        name: "{{ backend_container_name }}"
+        image: "{{ backend_image_name }}"
+        restart_policy: always
+        env: "{{ backend_env }}"
+        ports:
+          - "{{ backend_port }}:{{ backend_port }}"
+        networks:
+          - name: "{{ docker_network_name }}"
+  tags: ["backend"]

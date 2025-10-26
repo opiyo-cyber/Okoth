@@ -1,0 +1,7 @@
+---
+backend_build_context: "{{ app_base_dir }}/backend"
+backend_dockerfile: "Dockerfile"
+backend_image_name: "okoth-backend:latest"
+backend_container_name: "brian-yolo-backend"
+backend_port: 5000
+backend_env: {}
