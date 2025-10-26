@@ -1,109 +1,72 @@
-# YOLO E-Commerce Application - Docker Implementation Explanation
+# Explanation of Playbook Design and Execution Order
 
-This document explains the design choices and implementation details for containerizing the YOLO e-commerce application using Docker and Docker Compose. It covers the key aspects required for the assignment objectives.
+This document explains the sequencing, roles, and module choices in the Ansible-based automation, along with how Stage 2 orchestrates Terraform.
 
----
+## Execution Order (Stage 1)
+The main playbook `playbook.yml` runs roles in this sequence:
 
-## 1. Choice of the Base Image on Which to Build Each Container
+1) common
+- Purpose: Bootstrap the host with Docker and prerequisites.
+- Why first: All subsequent roles require Docker and Git.
+- Key modules:
+  - apt: install system packages and docker.io
+  - systemd: enable and start docker
+  - user: add vagrant to docker group for non-root usage
+  - pip: install docker SDK and docker-compose
 
-- **Frontend (`brian-yolo-client`)**  
-  Multi-stage build using `node:14-alpine` for both stages to ensure ABI compatibility and smaller images.
+2) app_repo
+- Purpose: Prepare application code on the host.
+- Why second: Containers may need build contexts (Dockerfiles) and assets.
+- Key modules:
+  - file: create base directory and ensure correct ownership
+  - git: clone the application repository at the specified version
 
-- **Backend (`brian-yolo-backend`)**  
-  Multi-stage build using `node:14-alpine` for both stages for consistency and reduced surface area.
+3) database
+- Purpose: Start the persistence layer (Postgres or MongoDB) with a named volume.
+- Why third: Backend should discover a ready DB before it starts.
+- Key modules:
+  - community.docker.docker_network: create a shared network for service discovery
+  - community.docker.docker_volume: ensure persistent volume exists
+  - community.docker.docker_container: run the DB container, publish ports, and attach to network
 
-- **Database (`app-ip-mongo`)**  
-  Official `mongo:latest` image for a maintained, production-ready MongoDB instance.
+4) backend
+- Purpose: Build and run the backend container configured to reach the DB.
+- Why fourth: Depends on both Docker and the DB being healthy.
+- Key modules:
+  - community.docker.docker_image: build the backend image from the repo path
+  - community.docker.docker_container: run backend on the shared network with env vars
 
-- **Database (`app-ip-mongo`)**  
-  Used the official `mongo:latest` image to leverage a well-maintained, production-ready MongoDB instance.
+5) frontend
+- Purpose: Build and run the frontend container configured to reach the backend.
+- Why fifth: Depends on backend port/URL being available.
+- Key modules:
+  - community.docker.docker_image: build the frontend image from the repo path
+  - community.docker.docker_container: run frontend with env pointing to backend
 
----
+## Blocks and Tags
+- Each role uses a top-level block for logical grouping and easier error isolation.
+- Tags are assigned per role: common, app/repo, db, backend, frontend, allowing targeted runs (e.g., `--tags db,backend`).
 
-## 2. Dockerfile Directives Used in Creation and Running of Each Container
+## Variables and Persistence
+- Variables centralize configuration in `group_vars/all.yml`.
+- Persistence: DB containers use named volumes (e.g., `okoth-postgres-data`, `okoth-mongo-data`). Data survives container restarts.
+- Inter-container networking: A user-defined Docker network (`okoth-net`) lets backend resolve the DB by container name.
+- Backend env:
+  - Postgres: `DATABASE_URL`, `PG*` vars point to `okoth-postgres:5432`.
+  - Mongo: `MONGO_URL`/`MONGODB_URI` point to `okoth-mongo:27017` with `authSource=admin`.
+- Frontend env:
+  - `API_URL`, `REACT_APP_API_URL`, `VITE_API_URL` point to `http://<vm_ip>:<backend_port>`.
+  - Adjust if your app expects different variable names.
 
-- **`FROM`**: Defines the base image and supports multi-stage builds to separate build environment from runtime.
-- **`WORKDIR`**: Sets a consistent working directory inside the container.
-- **`COPY`**: Transfers necessary files (code, dependencies) into the container.
-- **`RUN`**: Installs dependencies like `npm install` or system packages via Alpine’s `apk`.
-- **`EXPOSE`**: Documents the port on which the containerized service runs.
-- **`CMD`**: Specifies the default command to start the application.
-- **Multi-stage builds**: Used to reduce final image size by excluding build tools from the runtime image.
+## Stage 2 (Terraform + Ansible)
+- The Stage 2 playbook installs `community.general` and applies Terraform at `Stage_two/terraform/`.
+- Terraform uses a `null_resource` with `local-exec` to run `vagrant up --provision`, invoking Stage 1 via `ansible_local`.
+- After apply, the playbook verifies the frontend is reachable with `wait_for` and `uri`.
+- Terraform state management:
+  - `terraform.tfstate` is intended to be committed (no secrets included).
+  - Backup state `terraform.tfstate.backup` and `.terraform/` are ignored via `.gitignore`.
 
----
-
-## 3. Docker-compose Networking
-
-- Configured a **custom bridge network (`app-net`)** for inter-container communication.
-- Network uses a dedicated subnet `172.24.0.0/16` to avoid conflicts.
-- Containers communicate using service names (e.g., backend can access database via hostname `app-ip-mongo`).
-- Ports are mapped as follows to avoid conflicts on the host machine:
-  - Frontend: `3002` (host) → `3000` (container)
-  - Backend: `5001` (host) → `5000` (container)
-  - MongoDB: `27017` (host) → `27017` (container)
-
----
-
-## 4. Docker-compose Volume Definition and Usage
-
-- Defined a **named volume** (`app-mongo-data`) for MongoDB data persistence.
-- The volume is mounted to `/data/db` inside the MongoDB container, ensuring that all database data persists across container restarts or updates.
-- Using named volumes provides easier backup and migration options.
-
----
-
-## 5. Git Workflow Used to Achieve the Task
-
-- Cloned the starter repository and created feature branches for development.
-- Followed atomic commits with clear and descriptive messages using a conventional format, for example:
-  - `feat(backend): add MongoDB networking and volume configuration`
-  - `fix(docker): resolve port conflict issues in docker-compose`
-  - `docs: update explanation.md with Dockerfile rationale`
-- Pushed changes regularly to GitHub with pull requests for peer review.
-- Tagged commits corresponding to Docker image versions for traceability (e.g., `v1.0`).
-- Used `.gitignore` and `.dockerignore` files to keep the repository clean and optimize Docker builds.
-- Employed Docker Compose to build and test containers locally before pushing to the repository.
-
----
-
-## 6. Successful Running of the Applications and Debugging Measures Applied
-
-- The full stack application starts successfully with `docker-compose up --build`.
-- Verified container health and logs using `docker-compose logs` and `docker ps`.
-- Debugged common issues such as:
-  - Port conflicts by adjusting mapped ports.
-  - Dependency installation failures by refining Dockerfile instructions.
-  - Network connectivity problems by ensuring correct service names and network setup.
-- Rebuilt containers with `--build` flag after making Dockerfile changes.
-- Validated data persistence by adding products through the frontend and verifying data remains after container restarts.
-
----
-
-## 7. Good Practices Followed
-
-- Used **semantic version tags** for Docker images with your Docker Hub username, for example:  
-  - `opiyocrosh/brian-yolo-client:v1.0`  
-  - `opiyocrosh/brian-yolo-backend:v1.0`  
-- Created a dedicated Docker network to isolate and manage container communication.
-- Used named volumes for persistent data storage.
-- Employed `.dockerignore` to reduce build context and speed up builds.
-- Maintained a clean and descriptive Git commit history.
-- Documented all steps and architectural choices in this explanation file.
-
----
-
-## Docker Hub Images and Tags
-
-- Backend image: opiyocrosh/yolo-backend:1.0.0
-  - Tags page: https://hub.docker.com/r/opiyocrosh/yolo-backend/tags
-  - Latest push digest: sha256:317116b37880a58c0f92637dcfd4f03a4bc7b1e3499b012fcf195afb0df958e5
-- Frontend image: opiyocrosh/yolo-client:1.0.0
-  - Tags page: https://hub.docker.com/r/opiyocrosh/yolo-client/tags
-  - Latest push digest: sha256:6b87c320acfe07a32b0f88ca045f0645d993a28b67eab72a7bd4c90966dbc640
-
-Screenshots
-- Please include screenshots from your Docker Hub repositories showing the 1.0.0 tags (backend and frontend).
-
----
-
-*End of explanation.md*
+## Assumptions and Customization
+- Repository layout includes `backend/` and `frontend/` with Dockerfiles at the roots of each.
+- If your app uses different env var names, set them in `group_vars/all.yml` under `backend_env` and `frontend_env`.
+- Switch DB engine via `db_engine` (postgres|mongo).

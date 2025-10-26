@@ -1,9 +1,20 @@
-app-mongo-data
-app-mongo-data/
-vars.yml
-vault.yml
+# Global ignore
+.DS_Store
+*.retry
+__pycache__/
+
+# Vagrant
 .vagrant/
-.vscode/
-.vscode
-.vscode/*
-.vscode/*.json
+
+# Ansible collections cache (local installs)
+collections/
+
+# Terraform
+Stage_two/terraform/.terraform/
+Stage_two/terraform/terraform.tfstate.backup
+
+# Node/Front-end common
+**/node_modules/
+**/.next/
+**/dist/
+**/build/

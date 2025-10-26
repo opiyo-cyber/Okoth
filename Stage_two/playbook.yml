@@ -1,0 +1,55 @@
+---
+- name: Stage 2 Orchestration - Provision with Terraform and verify app
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    terraform_project_path: "{{ playbook_dir }}/terraform"
+    vm_ip: "192.168.56.10"
+    frontend_port: 3000
+    app_url: "http://{{ vm_ip }}:{{ frontend_port }}"
+  tasks:
+    - name: Ensure community.general collection is installed (for terraform module)
+      ansible.builtin.command: ansible-galaxy collection install community.general -p ~/.ansible/collections
+      args:
+        creates: "{{ lookup('env','HOME') + '/.ansible/collections/ansible_collections/community/general' }}"
+      tags: ["terraform", "collections"]
+
+    - block:
+        - name: Apply Terraform to provision Vagrant VM and trigger Stage 1 (ansible_local)
+          community.general.terraform:
+            project_path: "{{ terraform_project_path }}"
+            state: present
+            force_init: true
+          register: tf
+      rescue:
+        - name: Terraform apply failed
+          ansible.builtin.debug:
+            var: tf
+        - name: Fail play due to Terraform error
+          ansible.builtin.fail:
+            msg: "Terraform apply failed. Check output above."
+      tags: ["terraform"]
+
+    - name: Wait for frontend port to be open
+      ansible.builtin.wait_for:
+        host: "{{ vm_ip }}"
+        port: "{{ frontend_port }}"
+        delay: 2
+        timeout: 180
+      tags: ["verify"]
+
+    - name: Check application HTTP response
+      ansible.builtin.uri:
+        url: "{{ app_url }}"
+        return_content: false
+        status_code: [200, 301, 302]
+      register: app_health
+      failed_when: false
+      changed_when: false
+      tags: ["verify"]
+
+    - name: Show application URL
+      ansible.builtin.debug:
+        msg: "App should be reachable at {{ app_url }}"
+      tags: ["verify"]

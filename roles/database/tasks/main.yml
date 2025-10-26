@@ -1,0 +1,40 @@
+---
+- block:
+    - name: Ensure docker network exists
+      community.docker.docker_network:
+        name: "{{ docker_network_name }}"
+
+    - name: Ensure database volume exists
+      community.docker.docker_volume:
+        name: "{{ (postgres_volume if db_engine == 'postgres' else mongo_volume) }}"
+
+    - name: Run Postgres container
+      when: db_engine == 'postgres'
+      community.docker.docker_container:
+        name: okoth-postgres
+        image: postgres:14
+        restart_policy: always
+        env:
+          POSTGRES_USER: "{{ postgres_user }}"
+          POSTGRES_PASSWORD: "{{ postgres_password }}"
+          POSTGRES_DB: "{{ postgres_db }}"
+        volumes:
+          - "{{ postgres_volume }}:/var/lib/postgresql/data"
+        ports:
+          - "{{ postgres_port }}:5432"
+        networks:
+          - name: "{{ docker_network_name }}"
+
+    - name: Run MongoDB container (no auth, to match app defaults)
+      when: db_engine == 'mongo'
+      community.docker.docker_container:
+        name: app-ip-mongo
+        image: mongo:6
+        restart_policy: always
+        volumes:
+          - "{{ mongo_volume }}:/data/db"
+        ports:
+          - "{{ mongo_port }}:27017"
+        networks:
+          - name: "{{ docker_network_name }}"
+  tags: ["db"]

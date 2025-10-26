@@ -1,0 +1,3 @@
+---
+# Defaults for database role
+DB_DEFAULTS: true

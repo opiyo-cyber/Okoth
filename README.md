@@ -1,53 +1,61 @@
-# 🐳 YOLO E-Commerce App – Dockerized Full-Stack Application
+# Okoth - Stage 1 & Stage 2
 
-This is a fully containerized full-stack e-commerce web application built using **React (frontend)**, **Node.js + Express (backend)**, and **MongoDB (database)**. The entire stack is managed using **Docker** and **Docker Compose** for seamless deployment and scalability.
+Containerized e-commerce app deployment using Ansible (Stage 1) and Terraform+Ansible orchestration (Stage 2).
 
-The application allows users to add and view retail products. All product data is stored in MongoDB, with persistence managed via Docker volumes.
+## Prerequisites
+- VirtualBox and Vagrant
+- Ansible (on your host for Stage 2 runner)
+- Terraform (for Stage 2)
 
----
+## Repo Structure
+- `Vagrantfile` – boots Ubuntu 20.04 box and runs Ansible locally inside VM
+- `playbook.yml` – Stage 1 main playbook (Ansible)
+- `group_vars/all.yml` – central variables (edit me)
+- `roles/` – roles: `common`, `app_repo`, `database`, `backend`, `frontend`
+- `Stage_two/` – Stage 2: `playbook.yml` (Ansible) + `terraform/` module
+- `explanation.md` – rationale for ordering, modules, and design
 
-## 📦 Project Overview
+## Configure
+Edit `group_vars/all.yml`:
+- `app_repo_url`: your Week 2 repo URL
+- `db_engine`: `postgres` (default) or `mongo`
+- If needed, override `backend_env` and `frontend_env` to match your app's env var names
 
-This project demonstrates:
+## Stage 1 (Ansible + Vagrant)
+1) From this folder, run:
+   - `vagrant up`
+2) On success, open the app:
+   - Frontend: `http://192.168.56.10:3000/`
+   - Backend (if directly browsable): `http://192.168.56.10:5000/`
 
-- Full-stack application containerization using Docker.
-- Service orchestration using Docker Compose.
-- MongoDB data persistence through Docker volumes.
-- A modular architecture with separate containers for the frontend, backend, and database.
+## Stage 2 (Ansible orchestrating Terraform)
+1) `cd Stage_two`
+2) `ansible-playbook playbook.yml`
+   - Applies Terraform, which invokes `vagrant up --provision`
+   - Waits for the frontend and prints URL
 
----
+## Persistence
+- Postgres: named volume `okoth-postgres-data`
+- Mongo: named volume `okoth-mongo-data`
+- Data survives container restarts; removing the volume clears data
 
-## 🛠 Tech Stack
+## Useful Tags
+- Run specific parts: `vagrant provision --provision-with ansible_local -- --tags "db,backend"`
+- Within VM (if running ansible locally): `ansible-playbook playbook.yml --tags backend`
 
-- **Frontend:** React
-- **Backend:** Node.js, Express
-- **Database:** MongoDB
-- **Containerization:** Docker & Docker Compose
-- **Virtualization (optional):** Vagrant
+## Git & Terraform State
+- Commit `Stage_two/terraform/terraform.tfstate` after you run Stage 2 (no secrets included)
+- Backup state `terraform.tfstate.backup` and `.terraform/` are ignored by `.gitignore`
 
----
+## Push to GitHub
+- Initialize and push:
+  ```bash
+  git init
+  git add .
+  git commit -m "Okoth: Stage 1 & Stage 2 provisioning"
+  git branch -M main
+  git remote add origin <your_repo_url>
+  git push -u origin main
+  ```
 
-Application Access
-Component	URL
-Frontend	http://localhost:3002
-
-Backend	http://localhost:5001
-
-Database	Internal (MongoDB container)
-Docker Compose Overview
-
-docker-compose.yml includes:
-
-frontend: React app running on port 3002.
-
-backend: Express API server running on port 5001.
-
-mongo: MongoDB service with a named volume for data persistence.
-Screenshots
-<img width="1800" height="1035" alt="image" src="https://github.com/user-attachments/assets/f0aa5de1-3cbf-4071-b945-d3ec3ecb7c38" />
-
-Author
-
-GitHub: opiyo-cyber
-
-DockerHub: https://hub.docker.com/repositories/opiyocrosh
+See `explanation.md` for detailed reasoning and module choices.

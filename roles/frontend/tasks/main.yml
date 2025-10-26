@@ -1,0 +1,21 @@
+---
+- block:
+    - name: Build frontend Docker image
+      community.docker.docker_image:
+        build:
+          path: "{{ frontend_build_context }}"
+          dockerfile: "{{ frontend_dockerfile }}"
+        name: "{{ frontend_image_name }}"
+      when: app_repo_url != "REPLACE_WITH_YOUR_REPO_URL"
+
+    - name: Run frontend container
+      community.docker.docker_container:
+        name: "{{ frontend_container_name }}"
+        image: "{{ frontend_image_name }}"
+        restart_policy: always
+        env: "{{ frontend_env }}"
+        ports:
+          - "{{ frontend_port }}:{{ frontend_port }}"
+        networks:
+          - name: "{{ docker_network_name }}"
+  tags: ["frontend"]

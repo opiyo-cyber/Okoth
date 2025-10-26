@@ -1,0 +1,39 @@
+---
+- block:
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - git
+        state: present
+        update_cache: true
+
+    - name: Install Docker engine (ubuntu package)
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+
+    - name: Ensure docker service is enabled and started
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add vagrant user to docker group
+      ansible.builtin.user:
+        name: vagrant
+        groups: docker
+        append: true
+
+    - name: Install Docker SDK for Python
+      ansible.builtin.pip:
+        name: docker
+
+    - name: Install docker-compose via pip
+      ansible.builtin.pip:
+        name: docker-compose
+  tags: ["common"]
