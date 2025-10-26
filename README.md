@@ -28,6 +28,11 @@ Edit `group_vars/all.yml`:
    - Frontend: `http://192.168.56.10:3002/`
    - Backend (if directly browsable): `http://192.168.56.10:5001/`
 
+Alternative (Docker Compose on host):
+- `docker compose up -d --build` (or `docker-compose ...`)
+- Frontend: `http://localhost:3002` | Backend: `http://localhost:5001`
+- Stop with: `docker compose down`
+
 ## Stage 2 (Ansible orchestrating Terraform)
 1) `cd Stage_two`
 2) `ansible-playbook playbook.yml`
