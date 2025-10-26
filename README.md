@@ -39,13 +39,19 @@ Edit `group_vars/all.yml`:
 - Mongo: named volume `okoth-mongo-data`
 - Data survives container restarts; removing the volume clears data
 
+### Validate persistence (Mongo default)
+1) Open the app at `http://192.168.56.10:3000/`
+2) Add a product via the UI form
+3) Restart backend container inside VM: `docker restart brian-yolo-backend`
+4) Refresh products; the added product should still be present (persisted in `okoth-mongo-data`)
+
 ## Useful Tags
 - Run specific parts: `vagrant provision --provision-with ansible_local -- --tags "db,backend"`
 - Within VM (if running ansible locally): `ansible-playbook playbook.yml --tags backend`
 
 ## Git & Terraform State
-- Commit `Stage_two/terraform/terraform.tfstate` after you run Stage 2 (no secrets included)
-- Backup state `terraform.tfstate.backup` and `.terraform/` are ignored by `.gitignore`
+- After running Stage 2, commit `Stage_two/terraform/terraform.tfstate` (contains no credentials in this setup)
+- Ensure `Stage_two/terraform/terraform.tfstate.backup` and `.terraform/` remain ignored (see `.gitignore`)
 
 ## Push to GitHub
 - Initialize and push:
