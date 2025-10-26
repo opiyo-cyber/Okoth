@@ -41,7 +41,7 @@ The main playbook `playbook.yml` runs roles in this sequence:
 - Why fifth: Depends on backend port/URL being available.
 - Key modules:
   - community.docker.docker_image: build the frontend image from the repo path
-  - community.docker.docker_container: run frontend with env pointing to backend
+  - community.docker.docker_container: run frontend serving a production build (`serve -s build`) with env pointing to backend
 
 ## Blocks and Tags
 - Each role uses a top-level block for logical grouping and easier error isolation.
