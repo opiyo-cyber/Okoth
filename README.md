@@ -82,7 +82,7 @@ Deliverable	Description
 
 http://a263a87fb0806478fb57ecdd53f82e49-973885211.us-east-1.elb.amazonaws.com:3000
 
-Explanation.md	Contains detailed explanations for Kubernetes object selection, exposure method, and storage setup.
+**Explanation.md**	   contains detailed explanations for Kubernetes object selection, exposure method, and storage setup.
 
 **References**
 
