@@ -1,0 +1,25 @@
+---
+- block:
+    - name: Create app base directory
+      ansible.builtin.file:
+        path: "{{ app_base_dir }}"
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: "0755"
+
+    - name: Clone application repository
+      ansible.builtin.git:
+        repo: "{{ app_repo_url }}"
+        dest: "{{ app_base_dir }}"
+        version: "{{ app_repo_version }}"
+        force: true
+      when: app_repo_url != "REPLACE_WITH_YOUR_REPO_URL"
+
+    - name: Ensure app directory is owned by vagrant
+      ansible.builtin.file:
+        path: "{{ app_base_dir }}"
+        owner: vagrant
+        group: vagrant
+        recurse: true
+  tags: ["app", "repo"]

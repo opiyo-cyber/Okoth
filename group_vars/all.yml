@@ -1,0 +1,71 @@
+# Global variables
+# Replace with your actual repository URL for the Week 2 application
+app_repo_url: "https://github.com/opiyo-cyber/Okoth.git"
+app_repo_version: "main"
+app_base_dir: "/opt/app"
+
+# Host/IP for browser access to frontend/backend (Vagrant private network)
+host_ip: "192.168.56.10"
+
+# Shared Docker network name for inter-container communication
+docker_network_name: "app-net"
+
+# Database configuration (choose engine via db_engine)
+db_engine: "mongo"  # or "postgres"
+
+# Postgres variables
+postgres_user: "appuser"
+postgres_password: "apppassword"
+postgres_db: "appdb"
+postgres_port: 5432
+postgres_volume: "okoth-postgres-data"
+
+# MongoDB variables
+mongo_root_username: "root"
+mongo_root_password: "apppassword"
+mongo_database: "yolomy"
+mongo_port: 27017
+mongo_volume: "okoth-mongo-data"
+
+# Backend service variables
+backend_build_context: "{{ app_base_dir }}/backend"
+backend_dockerfile: "Dockerfile"
+backend_image_name: "okoth-backend:latest"
+backend_container_name: "brian-yolo-backend"
+# Container listens on 5000; expose as 5001 on the VM
+backend_port_container: 5000
+backend_port_host: 5001
+
+# Dynamically compute backend env based on database engine
+postgres_backend_env:
+  DATABASE_URL: "postgresql://{{ postgres_user }}:{{ postgres_password }}@okoth-postgres:5432/{{ postgres_db }}"
+  PGHOST: "okoth-postgres"
+  PGUSER: "{{ postgres_user }}"
+  PGPASSWORD: "{{ postgres_password }}"
+  PGDATABASE: "{{ postgres_db }}"
+  PGPORT: "5432"
+
+mongo_backend_env:
+  MONGO_URL: "mongodb://app-ip-mongo:27017/{{ mongo_database }}"
+  MONGODB_URI: "mongodb://app-ip-mongo:27017/{{ mongo_database }}"
+
+# Ensure backend binds to all interfaces and expected port
+backend_env: "{{ (postgres_backend_env if db_engine == 'postgres' else mongo_backend_env) | combine({'PORT': '5000'}) }}"
+
+# Frontend service variables
+frontend_build_context: "{{ app_base_dir }}/client"
+frontend_dockerfile: "Dockerfile"
+frontend_image_name: "okoth-frontend:latest"
+frontend_container_name: "brian-yolo-client"
+# Container listens on 3000; expose as 3002 on the VM
+frontend_port_container: 3000
+frontend_port_host: 3002
+
+# Frontend env defaults for API base URL
+frontend_env:
+  HOST: "0.0.0.0"
+  PORT: "3000"
+  API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
+  REACT_APP_API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
+  VITE_API_URL: "http://{{ host_ip }}:{{ backend_port_host }}"
+  CHOKIDAR_USEPOLLING: "true"

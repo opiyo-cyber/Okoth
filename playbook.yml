@@ -1,9 +1,68 @@
 ---
-- name: Ansible playbook to dockerize and run yolo e-commerce app using ansible
+# Stage 1: Ansible playbook
+- name: Provision app host with Docker and containers
   hosts: all
   become: true
-  roles: 
-    - frontend-deployment
-    - setup-mongodb   
-    - backend-deployment
-    
+
+  pre_tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags: ["bootstrap"]
+
+    - name: Ensure community.docker collection is installed system-wide (root)
+      ansible.builtin.command: ansible-galaxy collection install community.docker -p /usr/share/ansible/collections
+      args:
+        creates: "/usr/share/ansible/collections/ansible_collections/community/docker"
+      tags: ["bootstrap", "collections"]
+
+    - name: Ensure community.docker collection is installed for vagrant user
+      become_user: vagrant
+      ansible.builtin.command: ansible-galaxy collection install community.docker -p ~/.ansible/collections
+      args:
+        creates: "/home/vagrant/.ansible/collections/ansible_collections/community/docker"
+      tags: ["bootstrap", "collections"]
+
+  roles:
+    - { role: common, tags: ["common", "bootstrap"] }
+    - { role: app_repo, tags: ["app", "repo"] }
+    - { role: database, tags: ["db"] }
+    - { role: backend, tags: ["backend"] }
+    - { role: frontend, tags: ["frontend"] }
+
+  post_tasks:
+    - name: Wait for backend port
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ backend_port_host }}"
+        delay: 2
+        timeout: 180
+      tags: ["verify"]
+
+    - name: Wait for frontend port
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ frontend_port_host }}"
+        delay: 2
+        timeout: 180
+      tags: ["verify"]
+
+    - name: Check backend HTTP response
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ backend_port_host }}"
+        return_content: false
+        status_code: [200, 301, 302, 404]
+      register: backend_health
+      failed_when: false
+      changed_when: false
+      tags: ["verify"]
+
+    - name: Check frontend HTTP response
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ frontend_port_host }}"
+        return_content: false
+        status_code: [200, 301, 302]
+      register: frontend_health
+      failed_when: false
+      changed_when: false
+      tags: ["verify"]

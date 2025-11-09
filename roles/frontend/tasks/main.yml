@@ -1,0 +1,23 @@
+---
+- block:
+    - name: Build frontend Docker image
+      community.docker.docker_image:
+        build:
+          path: "{{ frontend_build_context }}"
+          dockerfile: "{{ frontend_dockerfile }}"
+        name: "{{ frontend_image_name }}"
+      when: app_repo_url != "REPLACE_WITH_YOUR_REPO_URL"
+
+    - name: Run frontend container (serve production build)
+      community.docker.docker_container:
+        name: "{{ frontend_container_name }}"
+        image: "{{ frontend_image_name }}"
+        restart_policy: always
+        env: "{{ frontend_env }}"
+        command: >-
+          sh -lc "npm run build && npm install -g serve && serve -s build -l {{ frontend_port_container }}"
+        ports:
+          - "{{ frontend_port_host }}:{{ frontend_port_container }}"
+        networks:
+          - name: "{{ docker_network_name }}"
+  tags: ["frontend"]
