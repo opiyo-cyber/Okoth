@@ -1,69 +1,100 @@
-# Okoth - Stage 1 & Stage 2
+Kubernetes Week 5 Independent Project (AWS EKS Deployment)
 
-Containerized e-commerce app deployment using Ansible (Stage 1) and Terraform+Ansible orchestration (Stage 2).
+This project demonstrates the deployment of a containerized multi-service application onto Amazon Elastic Kubernetes Service (EKS). The objective of this Independent Project was to apply Kubernetes orchestration concepts — such as Deployments, Services, Persistent Volumes, and StatefulSets — to deploy and manage a distributed application on a cloud-based cluster.
 
-## Prerequisites
-- VirtualBox and Vagrant
-- Ansible (on your host for Stage 2 runner)
-- Terraform (for Stage 2)
+Project Overview
 
-## Repo Structure
-- `Vagrantfile` – boots Ubuntu 20.04 box and runs Ansible locally inside VM
-- `playbook.yml` – Stage 1 main playbook (Ansible)
-- `group_vars/all.yml` – central variables (edit me)
-- `roles/` – roles: `common`, `app_repo`, `database`, `backend`, `frontend`
-- `Stage_two/` – Stage 2: `playbook.yml` (Ansible) + `terraform/` module
-- `explanation.md` – rationale for ordering, modules, and design
+Building upon the Week 2 Independent Project, this stage focused on deploying the same Dockerized application to a managed Kubernetes cluster on AWS EKS.
 
-## Configure
-Edit `group_vars/all.yml`:
-- `app_repo_url`: your Week 2 repo URL
-- `db_engine`: `postgres` (default) or `mongo`
-- If needed, override `backend_env` and `frontend_env` to match your app's env var names
+Each service of the application was packaged into a Docker image, pushed to Docker Hub with proper tagging conventions, and orchestrated using Kubernetes YAML manifests.
 
-## Stage 1 (Ansible + Vagrant)
-1) From this folder, run:
-   - `vagrant up`
-2) On success, open the app:
-   - Frontend: `http://localhost:3002/
-   - Backend (if directly browsable): `http://localhost:5001/
+The final deployment exposes a live, publicly accessible application through an AWS-managed Elastic Load Balancer (ELB).
 
-Alternative (Docker Compose on host):
-- `docker compose up -d --build` (or `docker-compose ...`)
-- Frontend: `http://localhost:3002` | Backend: `http://localhost:5001`
-- Stop with: `docker compose down`
+Architecture Overview
 
-## Stage 2 (Ansible orchestrating Terraform)
-1) `cd Stage_two`
-2) `ansible-playbook playbook.yml`
-   - Applies Terraform, which invokes `vagrant up --provision`
-   - Waits for the frontend and prints the URL
+Core components:
 
-## Persistence
-- Postgres: named volume `okoth-postgres-data`
-- Mongo: named volume `okoth-mongo-data`
-- Data survives container restarts; removing the volume clears data
+Frontend Service – A lightweight UI served using Nginx.
 
-### Validate persistence (Mongo default)
-1) Open the app at `http://localhost:3002`
-2) Add a product via the UI form
-3) Restart backend container inside VM: `docker restart brian-yolo-backend`
-4) Refresh products; the added product should still be present (persisted in `okoth-mongo-data`)
+Backend API – RESTful API implemented using Node.js/Express
 
-## Useful Tags
-- Run specific parts: `vagrant provision --provision-with ansible_local -- --tags "db,backend"`
-- Within VM (if running Ansible locally): `ansible-playbook playbook.yml --tags backend`
+Database – PostgreSQL deployed as a StatefulSet with persistent volume claims for stable storage.
 
-## Git & Terraform State
-- After running Stage 2, commit `Stage_two/terraform/terraform.tfstate` (contains no credentials in this setup)
-- Ensure `Stage_two/terraform/terraform.tfstate.backup` and `.terraform/` remain ignored (see `.gitignore`)
+Persistent Storage – Backed by AWS Elastic Block Store (EBS) volumes.
+
+Kubernetes Services – Internal communication via ClusterIP; external exposure via LoadBalancer.
+
+ Deployment Details
+Kubernetes Objects Used
+Object	Purpose	Description
+Deployment	Application management	used for stateless services, such as the frontend and backend, to handle scaling and rolling updates.
+StatefulSet	Database management	Deployed PostgreSQL with stable network identities and persistent storage.
+PersistentVolumeClaim (PVC)	Data storage	ensures that database data persists across pod restarts or node failures.
+Service (ClusterIP)	Internal routing	facilitates communication between frontend, backend, and database.
+Service (LoadBalancer)	External exposure	Creates an AWS ELB to route public internet traffic to the frontend.
+
+Live URL:
+http://a263a87fb0806478fb57ecdd53f82e49-973885211.us-east-1.elb.amazonaws.com:3000
+
+Persistent Storage
+
+The database uses PersistentVolumeClaims (PVCs) backed by AWS EBS volumes.
+This guarantees durable and reliable data storage across pod rescheduling or restarts.
+
+Example storage snippet:
+
+volumeMounts:
+  - name: db-storage
+    mountPath: /var/lib/postgresql/data
+volumes:
+  - name: db-storage
+    persistentVolumeClaim:
+      claimName: postgres-pvc
+
+
+AWS automatically provisions the EBS volume when the PVC is created, providing scalable and fault-tolerant storage for the StatefulSet.
+
+Git Workflow
+
+The following workflow was used to manage development and deployment:
+
+Main branch – Stable and production-ready manifests.
+
+Feature branches – For developing and testing specific Kubernetes objects (e.g., feature/statefulset-db).
+
+Commit messages – Clear, descriptive commit messages following conventional commit standards.
+
+Pull requests – Used to merge tested updates into main.
+
+Docker Image Management
+
+Docker images for each service were built, tagged, and pushed to Docker Hub for accessibility by the EKS cluster.
+
+Consistent naming and semantic tagging ensure clear version control and image identification across deployments.
+
+
+Final Deliverables
+Deliverable	Description
+Application URL	http://a263a87fb0806478fb57ecdd53f82e49-973885211.us-east-1.elb.amazonaws.com:3000
+
+Explanation.md	Contains detailed explanations for Kubernetes object selection, exposure method, and storage setup.
+
+References
+
+Kubernetes Documentation
+
+Amazon EKS User Guide
+
+Docker Hub
+
+StatefulSets Overview
+
+AWS EBS Persistent Volumes
 
 Author
 
+Your Name
 opiyo-cyber
 
-email: opiyo20302030@gmail.com
-
-GitHub Profile: https://github.com/opiyo-cyber
-
-See `explanation.md` for detailed reasoning and module choices.
+GitHub Profile
+https://github.com/opiyo-cyber
